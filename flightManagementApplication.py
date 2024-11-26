@@ -1,8 +1,15 @@
 import sqlite3
 from datetime import datetime
 
+# Function to check if a word is in a list (used below to check if column headers actually exist in a table)
+def word_in_list(word, list):
+    if word in list:
+        return True
+    else:
+        return False
+
 # Connect to the database
-def connnect_to_db():
+def connect_to_db():
     return sqlite3.connect("FlightManagement.db")
 
 # Function to format datetime in ISO 8601 format and convert to UTC
@@ -11,7 +18,77 @@ def format_datetime_iso_8601(dt_str):
     dt = datetime.strptime(dt_str, '%Y-%m-%dT%H:%M:%S')
     return dt.isoformat()
 
+# Function to view flights by criteria
+def view_flights():
 
+    # Establish connection with database
+    connection = connect_to_db()
+
+    # Create cursor object to execute SQL commands and queries
+    cursor = connection.cursor()
+
+    # Get user input for criteria
+    print("The available criteria for flights are:\n - Flight_ID\n - Flight_Number\n - Airline_Name\n - Aircraft_ID\n - Departure\n - Arrival\n - Flight_Status\n - Departure_Airport_IATA\n - Arrival_Airport_IATA\n\n")
+    criteria = input(f"Please enter a criteria or type 'ALL' to see all flights. Note, ensure your criteria matches with one of the above crieria:\n ")
+    
+
+    # Print all flights if user types 'ALL'
+    if (criteria.upper() == 'ALL'):
+
+        # Use the cursor object to run SQL commands. execute() runs it as a string literal so we can directly type the SQL command
+        cursor.execute("SELECT * FROM Flights;")
+
+        # Store all the flights
+        flights = cursor.fetchall()
+
+        # Check if any flights were found
+        if flights:
+            # Print all the flights
+            for flight in flights:
+                print(flight)
+
+        else:
+            print("No flights found for the given criteria.")
+
+        # Close connection to database and cursor - note close cursor first so that the connection cannot be closed while the cursor is in use
+        cursor.close()
+        connection.close()
+
+    # If user didn't type 'ALL'
+    else:
+
+        #  Check that criteria exists as a column header in the Flights table
+        valid_criteria = ["Flight_ID", "Flight_Number", "Airline_Name", "Aircraft_ID", 
+        "Departure", "Arrival", "Flight_Status", "Departure_Airport_IATA", "Arrival_Airport_IATA"]
+        if (criteria in valid_criteria):
+
+            # Get specific criteria user wants to see (e.g., all flights going to New York)
+            # Note we use a formatted string 
+            criteriaSelection = input(f"Please enter the specific value for {criteria}. E.g., for Destination_Airport_IATA you could select 'LGW' for London Gatwick Airport:\n ")
+
+            # Formulate the SQL Query - note the formatted string to pass in the criteria
+            query = f"SELECT * FROM Flights WHERE {criteria} = ?"
+
+            # Pass the SQL Query into the execute function where the place holder value is the criteria selection the user chooses
+            cursor.execute(query, (criteriaSelection,))
+
+            # Print the flights 
+            flights = cursor.fetchall()
+            if flights:
+                for flight in flights:
+                    print(flight)
+            else:
+                print("No flights exist for the given criteria.")
+
+        else:
+            print("That criteria does not exist! Make sure you type the criteria exactly as it appears in the Flights table.")
+
+        # Close cursor then connection to database
+        cursor.close()
+        connection.close()
+
+
+# Make sure inputted PK and FK are unique
 
 #   SQL Queries and Databse Interaction
 #  - Flight Retrieval: Retrieve flights based on multiple criteria, such as destination, status, or departure date.
@@ -44,4 +121,33 @@ def format_datetime_iso_8601(dt_str):
 #     - View/Update Destination Information
 #     - Ensure the interface displays results clearly and allows users to make changes based on input.
 
-# Command line interface design
+
+def main():
+    # Menu is constantly printed until user exits
+    while True:
+        # Options
+        print("Options for the Flight Management Database:\n")
+        print("1) View Flights by Criteria")
+        print("2) INSERT OPTION")
+        print("3) INSERT OPTION")
+        print("4) INSERT OPTION")
+        print("5) INSERT OPTION")
+        print("4) INSERT OPTION")
+        print("7) Quit\n")
+
+        # Get user input
+        choice = input("Enter the number of the option you wish to execute: ")
+        choice = choice.strip()  # Takes off any leading or trailing white space
+
+        # Call the function relating to the option that user selected
+        if choice == "1":
+            view_flights()
+        elif choice == "7":
+            print("Exitted Program")
+            break
+        else:
+            print("Invalid Input! Make sure you enter the number as a digit for the option you wish to execute.")
+
+# Ensures the main function is called
+if __name__ == "__main__":
+    main()

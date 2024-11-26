@@ -122,12 +122,6 @@ pilots = [
     (15, 'Jeff White', 'LN56780', 'Captain', 13)
 ]
 
-# Function to format datetime in ISO 8601 format and convert to UTC
-# This function will be used when users input data to ensure its in ISO 8601 format
-def format_datetime_iso_8601(dt_str):
-    dt = datetime.strptime(dt_str, '%Y-%m-%dT%H:%M:%S')
-    return dt.isoformat()
-
 # Generate sample data for Flights table
 # Create the lists
 flights = []
@@ -200,11 +194,11 @@ for flight in flights:
                 break
 
 # Insert data into the tables
-cursor.executemany("INSERT INTO Airports VALUES (?, ?, ?, ?)", airports)
-cursor.executemany("INSERT INTO Aircrafts VALUES (?, ?, ?, ?)", aircrafts)
-cursor.executemany("INSERT INTO Pilots VALUES (?, ?, ?, ?, ?)", pilots)
-cursor.executemany("INSERT INTO Flights VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", flights)
-cursor.executemany("INSERT INTO Flight_Pilot VALUES (?, ?, ?)", flight_pilot)
+cursor.executemany("INSERT OR REPLACE INTO Airports VALUES (?, ?, ?, ?)", airports)
+cursor.executemany("INSERT OR REPLACE INTO Aircrafts VALUES (?, ?, ?, ?)", aircrafts)
+cursor.executemany("INSERT OR REPLACE INTO Pilots VALUES (?, ?, ?, ?, ?)", pilots)
+cursor.executemany("INSERT OR REPLACE INTO Flights VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", flights)
+cursor.executemany("INSERT OR REPLACE INTO Flight_Pilot VALUES (?, ?, ?)", flight_pilot)
 
 # Commit the changes and close the connection
 connection.commit()
