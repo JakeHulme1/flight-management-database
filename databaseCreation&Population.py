@@ -1,5 +1,6 @@
 import sqlite3
-from datetime import datetime # Use this to format date and time into ISO 8601
+from datetime import datetime, timedelta # Use this to format date and time into ISO 8601
+import random # Used to randomly populate database
 
 # The sqlite3.connect() function returns a Connection object that is used to interact with the SQLite
 # database held in the file FlightManagement.db. The FlightManagement.db file is created automatically by sqlite3.connect()
@@ -22,14 +23,14 @@ CREATE TABLE IF NOT EXISTS Flights (
     Flight_Status TEXT NOT NULL, 
     Departure_Airport_IATA TEXT NOT NULL, 
     Arrival_Airport_IATA TEXT NOT NULL, 
-    FOREIGN KEY(Aircraft_ID) REFERENCES Aircraft(Aircraft_ID), 
+    FOREIGN KEY(Aircraft_ID) REFERENCES Aircrafts(Aircraft_ID), 
     FOREIGN KEY(Departure_Airport_IATA) REFERENCES Airport(Airport_IATA), 
     FOREIGN KEY(Arrival_Airport_IATA) REFERENCES Airport(Airport_IATA)
 )
 """)
 
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS Aircraft (
+CREATE TABLE IF NOT EXISTS Aircrafts (
     Aircraft_ID INTEGER PRIMARY KEY, 
     Aircraft_Model TEXT NOT NULL, 
     Age INTEGER NOT NULL, 
@@ -38,7 +39,7 @@ CREATE TABLE IF NOT EXISTS Aircraft (
 """)
 
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS Airport (
+CREATE TABLE IF NOT EXISTS Airports (
     Airport_IATA TEXT PRIMARY KEY, 
     City TEXT NOT NULL, 
     Country TEXT NOT NULL, 
@@ -68,42 +69,57 @@ CREATE TABLE IF NOT EXISTS Pilots (
 
 # Data for the tables are stored in a list, with each row being a tuple
 airports = [
-    ('JFK', 'New York', 'USA', 'UTC-05:00'),
-    ('LAX', 'Los Angeles', 'USA', 'UTC-08:00'),
-    ('ORD', 'Chicago', 'USA', 'UTC-06:00'),
-    ('DFW', 'Dallas', 'USA', 'UTC-06:00'),
-    ('DEN', 'Denver', 'USA', 'UTC-07:00'),
-    ('ATL', 'Atlanta', 'USA', 'UTC-05:00'),
-    ('SEA', 'Seattle', 'USA', 'UTC-08:00'),
-    ('MIA', 'Miami', 'USA', 'UTC-05:00'),
-    ('SFO', 'San Francisco', 'USA', 'UTC-08:00'),
-    ('LAS', 'Las Vegas', 'USA', 'UTC-08:00')
+    ("JFK", "New York", "USA", "-05:00"),
+    ("LHR", "London", "UK", "+00:00"),
+    ("CDG", "Paris", "France", "+01:00"),
+    ("HND", "Tokyo", "Japan", "+09:00"),
+    ("DXB", "Dubai", "UAE", "+04:00"),
+    ("SYD", "Sydney", "Australia", "+10:00"),
+    ("FRA", "Frankfurt", "Germany", "+01:00"),
+    ("SIN", "Singapore", "Singapore", "+08:00"),
+    ("AMS", "Amsterdam", "Netherlands", "+01:00"),
+    ("HKG", "Hong Kong", "Hong Kong SAR China", "+08:00"),
+    ("LAX", "Los Angeles", "USA", "-08:00"),
+    ("ORD", "Chicago", "USA", "-06:00"),
+    ("GRU", "Sao Paulo", "Brazil", "-03:00"),
+    ("YYZ", "Toronto", "Canada", "-05:00"),
+    ("ICN", "Seoul", "South Korea", "+09:00")
 ]
 
 aircrafts = [
-    (1, 'Boeing 737', 10, 12345),
-    (2, 'Airbus A320', 8, 23456),
-    (3, 'Boeing 777', 12, 34567),
-    (4, 'Airbus A380', 5, 45678),
-    (5, 'Boeing 787', 7, 56789),
-    (6, 'Airbus A350', 6, 67890),
-    (7, 'Boeing 747', 15, 78901),
-    (8, 'Airbus A330', 9, 89012),
-    (9, 'Boeing 767', 11, 90123),
-    (10, 'Airbus A340', 13, 12346)
+    (1, "Boeing 737", 5, "N73701"),
+    (2, "Airbus A320", 3, "A32002"),
+    (3, "Boeing 777", 7, "N77703"),
+    (4, "Airbus A380", 2, "A38004"),
+    (5, "Boeing 787", 4, "N78705"),
+    (6, "Airbus A350", 6, "A35006"),
+    (7, "Boeing 747", 10, "N74707"),
+    (8, "Airbus A330", 8, "A33008"),
+    (9, "Boeing 767", 9, "N76709"),
+    (10, "Airbus A340", 11, "A34010"),
+    (11, "Boeing 757", 12, "N75711"),
+    (12, "Airbus A321", 1, "A32112"),
+    (13, "Boeing 727", 15, "N72713"),
+    (14, "Airbus A319", 13, "A31914"),
+    (15, "Boeing 737 MAX", 2, "N737M15")
 ]
 
 pilots = [
-    (1, 'John Doe', 11111, 'Captain', 20),
-    (2, 'Jane Smith', 22222, 'First Officer', 15),
-    (3, 'Jim Brown', 33333, 'Captain', 18),
-    (4, 'Jake White', 44444, 'First Officer', 12),
-    (5, 'Jill Green', 55555, 'Captain', 22),
-    (6, 'Jerry Black', 66666, 'First Officer', 14),
-    (7, 'Janet Blue', 77777, 'Captain', 19),
-    (8, 'Jack Yellow', 88888, 'First Officer', 16),
-    (9, 'Julie Red', 99999, 'Captain', 21),
-    (10, 'Jason Purple', 10101, 'First Officer', 13)
+    (1, 'John Doe', 'LN12345', 'Captain', 15),
+    (2, 'Jane Smith', 'LN23456', 'First Officer', 10),
+    (3, 'Jim Brown', 'LN34567', 'Captain', 20),
+    (4, 'Jake White', 'LN45678', 'First Officer', 8),
+    (5, 'Jill Green', 'LN56789', 'Captain', 12),
+    (6, 'Jack Black', 'LN67890', 'First Officer', 7),
+    (7, 'Jerry Blue', 'LN78901', 'Captain', 18),
+    (8, 'Janet Yellow', 'LN89012', 'First Officer', 9),
+    (9, 'Jordan Purple', 'LN90123', 'Captain', 14),
+    (10, 'Jasmine Orange', 'LN01234', 'First Officer', 6),
+    (11, 'Jason Red', 'LN12346', 'Captain', 16),
+    (12, 'Jessica Pink', 'LN23457', 'First Officer', 11),
+    (13, 'Jeremy Gray', 'LN34568', 'Captain', 19),
+    (14, 'Julia Brown', 'LN45679', 'First Officer', 5),
+    (15, 'Jeff White', 'LN56780', 'Captain', 13)
 ]
 
 # Function to format datetime in ISO 8601 format and convert to UTC
@@ -112,39 +128,83 @@ def format_datetime_iso_8601(dt_str):
     dt = datetime.strptime(dt_str, '%Y-%m-%dT%H:%M:%S')
     return dt.isoformat()
 
-# Use the function here to ensure all data is in ISO 8601 format (I manually entered it in ISO 8601 but this just double checks its in the format)
-flights = [
-    (1, 1001, 'Delta Airlines', 1, format_datetime_iso_8601('2023-01-01T08:00:00'), format_datetime_iso_8601('2023-01-01T12:00:00'), 'On Time', 'JFK', 'LAX'),
-    (2, 1002, 'American Airlines', 2, format_datetime_iso_8601('2023-01-02T09:00:00'), format_datetime_iso_8601('2023-01-02T13:00:00'), 'Delayed', 'LAX', 'ORD'),
-    (3, 1003, 'United Airlines', 3, format_datetime_iso_8601('2023-01-03T10:00:00'), format_datetime_iso_8601('2023-01-03T14:00:00'), 'Cancelled', 'ORD', 'DFW'),
-    (4, 1004, 'Southwest Airlines', 4, format_datetime_iso_8601('2023-01-04T11:00:00'), format_datetime_iso_8601('2023-01-04T15:00:00'), 'On Time', 'DFW', 'DEN'),
-    (5, 1005, 'Alaska Airlines', 5, format_datetime_iso_8601('2023-01-05T12:00:00'), format_datetime_iso_8601('2023-01-05T16:00:00'), 'Delayed', 'DEN', 'ATL'),
-    (6, 1006, 'JetBlue Airways', 6, format_datetime_iso_8601('2023-01-06T13:00:00'), format_datetime_iso_8601('2023-01-06T17:00:00'), 'On Time', 'ATL', 'SEA'),
-    (7, 1007, 'Spirit Airlines', 7, format_datetime_iso_8601('2023-01-07T14:00:00'),format_datetime_iso_8601('2023-01-07T18:00:00'), 'Cancelled', 'SEA', 'MIA'),
-    (8, 1008, 'Frontier Airlines', 8, format_datetime_iso_8601('2023-01-08T15:00:00'), format_datetime_iso_8601('2023-01-08T19:00:00'), 'On Time', 'MIA', 'SFO'),
-    (9, 1009, 'Hawaiian Airlines', 9, format_datetime_iso_8601('2023-01-09T16:00:00'), format_datetime_iso_8601('2023-01-09T20:00:00'), 'Delayed', 'SFO', 'LAS'),
-    (10, 1010, 'Allegiant Air', 10, format_datetime_iso_8601('2023-01-10T17:00:00'), format_datetime_iso_8601('2023-01-10T21:00:00'), 'On Time', 'LAS', 'JFK')
-]
+# Generate sample data for Flights table
+# Create the lists
+flights = []
+flight_pilot = []
+flight_id = 1 # Start the ID at 1
 
-flight_pilots = [
-    (1, 1, 'Captain'),
-    (1, 2, 'First Officer'),
-    (2, 3, 'Captain'),
-    (2, 4, 'First Officer'),
-    (3, 5, 'Captain'),
-    (3, 6, 'First Officer'),
-    (4, 7, 'Captain'),
-    (4, 8, 'First Officer'),
-    (5, 9, 'Captain'),
-    (5, 10, 'First Officer')
-]
+for i in range(15):
+
+    # Randomly select the flight no, airline, aircraft ID (from list of aircrafts), departure and arrival airport
+    flight_number = random.randint(1000, 9999)
+    airline_name = random.choice(["British Airways", "Emirates", "Singapore Airlines"])
+    aircraft_id = random.randint(1, len(aircrafts))
+    departure_airport = random.choice(airports)[0]
+
+    # Chooses arrival airport so long as the departure != arrival
+    arrival_airport = random.choice([airport[0] for airport in airports if airport[0] != departure_airport])
+
+    # Randomly select the departure and calculate the arrival using time delta
+    departure_time = datetime.now() + timedelta(days=random.randint(1, 30))
+    arrival_time = departure_time + timedelta(hours=random.randint(2, 12))
+    # Randomyly select the flight status
+
+    flight_status = random.choice(["On Time", "Delayed", "Cancelled"])
+    
+    # Ensure all departure and arrivals are in ISO 8601 format and add the above info into a tuple in the flights list
+    flights.append((flight_id, flight_number, airline_name, aircraft_id, departure_time.isoformat(), arrival_time.isoformat(), flight_status, departure_airport, arrival_airport))
+    
+    # Increment the ID for next row
+    flight_id += 1
+
+# Assign pilots to flights
+for flight in flights:
+
+    # Randomly select no. of pilots between 2 and 4
+    num_pilots = random.randint(2, 4) 
+
+    # Ensures a random subset from pilots is chosen for each flight
+    assigned_pilots = random.sample(pilots, num_pilots)
+
+    # Ensure exactly one captain per flight
+    captain_assigned = False
+
+    # Iterate through pilots in the assigned pilots list
+    for pilot in assigned_pilots:
+
+        # Checks if a captain has not been assigned yet and if the current pilot is ranked a captain
+        if not captain_assigned and pilot[3] == 'Captain':
+
+            # If this condition is true, assign the pilot as a captain
+            flight_pilot.append((flight[0], pilot[0], 'Captain'))
+
+            # Update that captain has been assigned
+            captain_assigned = True
+        else:
+
+            # If conditions are not met, pilot is assigned as first officer and details appended to flight_pilot
+            flight_pilot.append((flight[0], pilot[0], 'First Officer'))
+    
+    # If no captain was assigned, replace one of the first officers with a captain
+    if not captain_assigned:
+
+        # enumerate gets the index of the pilot and their details
+        for index, (flight_id, pilot_id, role) in enumerate(flight_pilot):
+
+            # Checks if pilot is assigned to currrent flight and and is a first officer
+            if flight_id == flight[0] and role == 'First Officer':
+
+                # Promotes them to captain and exits loop
+                flight_pilot[index] = (flight_id, pilot_id, 'Captain')
+                break
 
 # Insert data into the tables
-cursor.executemany("INSERT INTO Airport VALUES (?, ?, ?, ?)", airports)
-cursor.executemany("INSERT INTO Aircraft VALUES (?, ?, ?, ?)", aircrafts)
+cursor.executemany("INSERT INTO Airports VALUES (?, ?, ?, ?)", airports)
+cursor.executemany("INSERT INTO Aircrafts VALUES (?, ?, ?, ?)", aircrafts)
 cursor.executemany("INSERT INTO Pilots VALUES (?, ?, ?, ?, ?)", pilots)
 cursor.executemany("INSERT INTO Flights VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", flights)
-cursor.executemany("INSERT INTO Flight_Pilot VALUES (?, ?, ?)", flight_pilots)
+cursor.executemany("INSERT INTO Flight_Pilot VALUES (?, ?, ?)", flight_pilot)
 
 # Commit the changes and close the connection
 connection.commit()
