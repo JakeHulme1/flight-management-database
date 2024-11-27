@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime, timedelta # Use this to format date and time into ISO 8601
+from datetime import datetime, timedelta # Use this to format date and time into ISO 8601 and perform date calculations
 import random # Used to randomly populate database
 
 # The sqlite3.connect() function returns a Connection object that is used to interact with the SQLite
@@ -142,12 +142,16 @@ for i in range(15):
     # Randomly select the departure and calculate the arrival using time delta
     departure_time = datetime.now() + timedelta(days=random.randint(1, 30))
     arrival_time = departure_time + timedelta(hours=random.randint(2, 12))
-    # Randomyly select the flight status
+    
+    # Format the departure and arrival times to not include seconds (this is unnecessary)
+    formatted_departure_time = departure_time.strftime('%Y-%m-%dT%H:%M')
+    formatted_arrival_time = arrival_time.strftime('%Y-%m-%dT%H:%M')
 
+    # Randomyly select the flight status
     flight_status = random.choice(["On Time", "Delayed", "Cancelled"])
     
     # Ensure all departure and arrivals are in ISO 8601 format and add the above info into a tuple in the flights list
-    flights.append((flight_id, flight_number, airline_name, aircraft_id, departure_time.isoformat(), arrival_time.isoformat(), flight_status, departure_airport, arrival_airport))
+    flights.append((flight_id, flight_number, airline_name, aircraft_id, formatted_departure_time, formatted_arrival_time, flight_status, departure_airport, arrival_airport))
     
     # Increment the ID for next row
     flight_id += 1
@@ -193,7 +197,7 @@ for flight in flights:
                 flight_pilot[index] = (flight_id, pilot_id, 'Captain')
                 break
 
-# Insert data into the tables
+# Insert data into the tables, replace repeated data to avoid defying unique constraints for primary keys
 cursor.executemany("INSERT OR REPLACE INTO Airports VALUES (?, ?, ?, ?)", airports)
 cursor.executemany("INSERT OR REPLACE INTO Aircrafts VALUES (?, ?, ?, ?)", aircrafts)
 cursor.executemany("INSERT OR REPLACE INTO Pilots VALUES (?, ?, ?, ?, ?)", pilots)
