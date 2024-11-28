@@ -279,6 +279,77 @@ def assign_pilot_to_flight():
     cursor.close()
     connection.close()
 
+    # # Use the cursor object to run SQL commands. execute() runs it as a string literal so we can directly type the SQL command
+    #     cursor.execute("SELECT * FROM Flights;")
+
+    #     # Store all the flights
+    #     flights = cursor.fetchall()
+
+    #     # Check if any flights were found
+    #     if flights:
+    #         # Print all the flights
+    #         for flight in flights:
+    #             print(flight)
+
+    #     else:
+    #         print("No flights found for the given criteria.")
+
+def view_pilot_schedule():
+    
+    # Establish connection and create cursor
+    connection = connect_to_db()
+    cursor = connection.cursor()
+
+    #Get user input and check that pilot_ID exists
+    pilot_id = input("Enter 'ALL' to see all pilot's schedules or enter the pilot ID number for the pilot who you wish to see the schedule for: ")
+
+    # If user types 'ALL' show whole schedule
+    if pilot_id == "ALL":
+
+        cursor.execute("""SELECT Pilot_ID, Full_Name, Flight_ID, Flight_Number, Departure, Arrival, Flight_Status,
+                       Departure_Airport_IATA, Arrival_Airport_IATA
+                       FROM (Pilots NATURAL JOIN Flight_Pilot NATURAL JOIN Flights)
+                       ORDER BY Pilot_ID, Flight_ID""")
+        schedule = cursor.fetchall()
+
+        # Check if there is a schedule and print is there is
+        if schedule:
+            for item in schedule:
+                print(item)
+        else:
+            print("There is currently no flight schedule") 
+        
+        # Close cursor and connection
+        cursor.close()
+        connection.close()
+
+    # Check an ID for this pilot exists
+    cursor.execute("SELECT 1 FROM Pilots WHERE Pilot_ID = ?", (pilot_id,))
+    pilot_exists = cursor.fetchone()
+
+    # If pilot exists, display their sechedule
+    if pilot_exists:
+
+        # Grab all the relevant items from the tables
+        cursor.execute("""SELECT Pilot_ID, Full_Name, Flight_ID, Flight_Number, Departure, Arrival, Flight_Status,
+                       Departure_Airport_IATA, Arrival_Airport_IATA
+                       FROM (Pilots NATURAL JOIN Flight_Pilot NATURAL JOIN Flights)
+                       WHERE Pilot_ID = ?
+                       ORDER BY Pilot_ID, Flight_ID""", (pilot_id,))
+        # Store all of these in the schedule list
+        schedule = cursor.fetchall()
+
+        # If data has been collected it print it, if not, no data exists for that pilot
+        if schedule:
+            for item in schedule:
+                print(item)
+        else:
+            print(f"Pilot with ID number {pilot_id} has no schedule.")
+    else:
+        print(f"Pilot with ID number {pilot_id} does not exist! Check the ID and try again")
+    
+
+
 # Main function to display terminal and implement functions
 def main():
     # Menu is constantly printed until user exits

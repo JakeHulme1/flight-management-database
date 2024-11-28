@@ -123,10 +123,9 @@ pilots = [
 ]
 
 # Generate sample data for Flights table
-# Create the lists
+# Create the list
 flights = []
-flight_pilot = []
-flight_id = 1 # Start the ID at 1
+flight_id = 1
 
 for i in range(15):
 
@@ -156,46 +155,26 @@ for i in range(15):
     # Increment the ID for next row
     flight_id += 1
 
-# Assign pilots to flights
-for flight in flights:
+# Generate data for flight_pilot data
+flight_pilot = [
+    (1, 1, 'Captain'), (1, 2, 'First Officer'), (1, 3, 'First Officer'),
+    (2, 4, 'Captain'), (2, 5, 'First Officer'),
+    (3, 6, 'Captain'), (3, 7, 'First Officer'), (3, 8, 'First Officer'),
+    (4, 9, 'Captain'), (4, 10, 'First Officer'),
+    (5, 11, 'Captain'), (5, 12, 'First Officer'), (5, 13, 'First Officer'),
+    (6, 14, 'Captain'), (6, 15, 'First Officer'),
+    (7, 1, 'Captain'), (7, 4, 'First Officer'), (7, 6, 'First Officer'),
+    (8, 2, 'Captain'), (8, 5, 'First Officer'),
+    (9, 3, 'Captain'), (9, 7, 'First Officer'), (9, 8, 'First Officer'),
+    (10, 9, 'Captain'), (10, 10, 'First Officer'),
+    (11, 11, 'Captain'), (11, 12, 'First Officer'), (11, 13, 'First Officer'),
+    (12, 14, 'Captain'), (12, 15, 'First Officer'),
+    (13, 1, 'Captain'), (13, 2, 'First Officer'), (13, 3, 'First Officer'),
+    (14, 4, 'Captain'), (14, 5, 'First Officer'),
+    (15, 6, 'Captain'), (15, 7, 'First Officer'), (15, 8, 'First Officer')
+]
 
-    # Randomly select no. of pilots between 2 and 4
-    num_pilots = random.randint(2, 4) 
 
-    # Ensures a random subset from pilots is chosen for each flight
-    assigned_pilots = random.sample(pilots, num_pilots)
-
-    # Ensure exactly one captain per flight
-    captain_assigned = False
-
-    # Iterate through pilots in the assigned pilots list
-    for pilot in assigned_pilots:
-
-        # Checks if a captain has not been assigned yet and if the current pilot is ranked a captain
-        if not captain_assigned and pilot[3] == 'Captain':
-
-            # If this condition is true, assign the pilot as a captain
-            flight_pilot.append((flight[0], pilot[0], 'Captain'))
-
-            # Update that captain has been assigned
-            captain_assigned = True
-        else:
-
-            # If conditions are not met, pilot is assigned as first officer and details appended to flight_pilot
-            flight_pilot.append((flight[0], pilot[0], 'First Officer'))
-    
-    # If no captain was assigned, replace one of the first officers with a captain
-    if not captain_assigned:
-
-        # enumerate gets the index of the pilot and their details
-        for index, (flight_id, pilot_id, role) in enumerate(flight_pilot):
-
-            # Checks if pilot is assigned to currrent flight and and is a first officer
-            if flight_id == flight[0] and role == 'First Officer':
-
-                # Promotes them to captain and exits loop
-                flight_pilot[index] = (flight_id, pilot_id, 'Captain')
-                break
 
 # Insert data into the tables, replace repeated data to avoid defying unique constraints for primary keys
 cursor.executemany("INSERT OR REPLACE INTO Airports VALUES (?, ?, ?, ?)", airports)
