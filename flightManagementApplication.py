@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+from tabulate import tabulate # Used for formatting output
 
 # Connect to the database
 def connect_to_db():
@@ -361,15 +362,32 @@ def view_destination_info():
     # Ask user what destination they want to see flights for
     destination = input("Enter the IATA of the destination airport (e.g. Sydney is SYD): ")
 
-    # Grab all relevant items from table by joining Airport_IATA in Airport with Arrival_Airport_IATA in FLights
-    cursor.execute("""SELECT 
-                   Flight.Flight_Number
-                   Flight.Departure_Airport_IATA AS "Origin"
-                   Flight.Airline_Name, 
-                   Flight.Arrival
-                   Flight.Flight_Status
-                   FROM""")
+    if (len(destination) != 3):
+        print("Please ensure you enter the correct IATA of the destination airport - only 3 letters.")
 
+    else:
+
+        # Grab all relevant items from table by joining Airport_IATA in Airport with Arrival_Airport_IATA in FLights
+        cursor.execute("""SELECT 
+                    Flights.Flight_Number,
+                    Flights.Departure_Airport_IATA AS "Origin",
+                    Flights.Airline_Name, 
+                    Flights.Arrival,
+                    Flights.Flight_Status
+                    FROM Flights
+                    WHERE Flights.Arrival_Airport_IATA = ?""", (destination,))
+        flights = cursor.fetchall()
+
+        if flights:
+            headers = ["Flight Number", "Origin", "Airline Name", "Arrival", "Flight Status"]
+            print(f"Flights going to {destination} airport:\n")
+            print(tabulate(flights, headers=headers, tablefmt="grid"))
+        else:
+            print(f"No flights to {destination} in the database")
+
+    # Close connection and cursor
+    cursor.close()
+    connection.close()
 
 
 # Main function to display terminal and implement functions
@@ -405,6 +423,8 @@ def main():
             assign_pilot_to_flight()
         elif choice == "6":
             view_pilot_schedule()
+        elif choice =="7":
+            view_destination_info()
         elif choice == "9":
             print("Exitted Program")
             break
