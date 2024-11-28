@@ -101,7 +101,7 @@ def create_new_flight_id():
     cursor.execute("SELECT MAX(Flight_ID) FROM Flights")
 
     # Store the previous flight ID by fetching the value produced by the cursor.execute
-    previous_ID = cursor.fetchone[0]
+    previous_ID = cursor.fetchone()[0]
 
     # Return the next Flight_ID or return 1 if there are none
     if previous_ID is None:
@@ -116,8 +116,6 @@ def add_flight():
     connection = connect_to_db()
     cursor = connection.cursor()
 
-    new_flight_id = input("")
-
     # Generate a new Flight_ID
     new_flight_id = create_new_flight_id()
 
@@ -128,53 +126,160 @@ def add_flight():
     new_departure_airport = input("Enter departure airport IATA code: ")
     new_arrival_airport = input("Enter arrival airport IATA code: ")
     new_departure_time = input("Enter departure date and time in ISO 8601 format(YYYY-MM-DDThh:mm): ")
-    formatted_new_departure_time = new_departure_time.strftime('%Y-%m-%dT%H:%M') # Formats it into ISO 8601 if user didn't
     new_arrival_time = input("Enter arrival date and time (YYYY-MM-DDThh:mm): ")
-    formatted_new_arrival_time = new_arrival_time.strftime('%Y-%m-%dT%H:%M') # Formats it into ISO 8601 if user didn't
     new_flight_status = input("Enter flight status: ")
 
     # Add all of this data to a new row in the Flights table
+    # Need to ensure that the names of the values to be inserted are in the same order as the column names in the Flights table
     cursor.execute("""
-        INSERT INTO FLIGHTS"""
+        INSERT INTO FLIGHTS (Flight_ID, Flight_Number, Airline_Name, Aircraft_ID, Departure, Arrival, Flight_Status, 
+                   Departure_Airport_IATA, Arrival_Airport_IATA)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (new_flight_id, new_flight_number, new_airline_name, new_aircraft_id, new_departure_time,
+        new_arrival_time, new_flight_status, new_departure_airport, new_arrival_airport))
+    
+    # Commit the changes and close the connection
+    connection.commit()
+    print("Flight added successfully!")
+    cursor.close()
+    connection.close()
 
 # Function to remove flights
 def remove_flight():
-    return
+    
+    # Establish connection and creat cursor
+    connection = connect_to_db()
+    cursor = connection.cursor()
 
+    # Get user input, ask for flight_ID as this is unique for every flight and avoids removing multiple flights
+    flight_id_remove = input("Please enter the ID of the flight that you wish to remove: ")
 
+    # CHeck that flight ID exists
+    cursor.execute("SELECT 1 FROM Flights WHERE Flight_ID = ?", (flight_id_remove,))
+    flight_exists = cursor.fetchone() # This returns none if no flight ID exists for user input
 
-#   SQL Queries and Databse Interaction
-#  - Flight Retrieval: Retrieve flights based on multiple criteria, such as destination, status, or departure date.
-#  - Schedule Modification: Update flight schedules (e.g., change departure time or status).
-#  - Pilot Assignment: Assign pilots to flights and retrieve information about pilot schedules.
-#  - Destination Management: View and update destination information as required.
-#  - Include additional queries that summarise data, such as the number of flights to each destination or the
-#   number of flights assigned to a pilot
+    #Proceed with update if flight exists
+    if flight_exists:
 
-# SQL QUERIES:
-# Flight retrieval:
-# - All flights: 
-#       SELECT * FROM FLights;
-# - Show all destinations (doesn't repeat any location): 
-#       SELECT DISTINCT City AS 'City', Country AS 'Country' FROM (Flights NATURAL JOIN Airports); 
-# - Show all cancelled flights:
-#       SELECT * FROM Flights WHERE Flight_Status = 'Cancelled';
-# - Show all flights in date order:
-#       SELECT * FROM Flights
+        cursor.execute("DELETE FROM Flights WHERE Flight_ID = ?",
+                    (flight_id_remove,))
 
-#   Application Development in Python (using SQLite3)
-#  - Develop a command-line interface (CLI) in Python using the sqlite3 library to interact with your SQLite
-#    database.
-#  - The application should present a menu with options such as:
-#     - Add a New Flight
-#     - View Flights by Criteria - destination, status, departure date
-#     - Update Flight Information - change departure time, arrival time and status
-#     - Assign Pilot to Flight - add/remove pilots, retrieve info about schedules
-#     - View Pilot Schedule
-#     - View/Update Destination Information
-#     - Ensure the interface displays results clearly and allows users to make changes based on input.
+        # Commit the changes and close the connection
+        connection.commit()
+        print("Flight removed successfully!")
 
+    else:
+        print(f"No flight found with ID {flight_id_remove}. Please check the ID and try again.")
+    
+    cursor.close()
+    connection.close()
 
+# Function to update flight information
+def update_flight_info():
+
+    # Establish connection and create cursor
+    connection = connect_to_db()
+    cursor = connection.cursor()
+
+    # Prompt user to input ID of flight they are updating
+    flight_id = input("Please enter the ID of the flight you are updating the information for: ")
+
+     # CHeck that flight ID exists
+    cursor.execute("SELECT 1 FROM Flights WHERE Flight_ID = ?", (flight_id,))
+    flight_exists = cursor.fetchone() # This returns none if no flight ID exists for user input
+
+     #Proceed with update if flight exists
+    if flight_exists:
+
+        # Prompt user to enter what criteria they are updating
+        criteria = input("The criteria you can update are: \n - Flight_ID\n - Flight_Number\n - Airline_Name\n - Aircraft_ID\n - Departure\n - Arrival\n - Flight_Status\n - Departure_Airport_IATA\n - Arrival_Airport_IATA\n\nPlease enter the criteria you are updating: ")
+
+        #  Check that criteria exists as a column header in the Flights table
+        valid_criteria = ["Flight_ID", "Flight_Number", "Airline_Name", "Aircraft_ID", 
+            "Departure", "Arrival", "Flight_Status", "Departure_Airport_IATA", "Arrival_Airport_IATA"]
+        if (criteria in valid_criteria):
+
+            # Instruct user to input any datetime strings in ISO 8601 format
+            if ((criteria == 'Arrival') or (criteria == 'Departure')):
+                print(f"Ensure you type the date and time of {criteria} in ISO8601 format: YYYY-MM-DDThh:mm")
+
+            # Prompt user to enter the new value for the specified criteria
+            new_value = input(f"Please enter the new value for {criteria}: ")
+
+            cursor.execute(f"UPDATE Flights SET {criteria} = ? WHERE Flight_ID = ?",
+                        (new_value, flight_id,))
+        
+            # Commit the changes and close the connection
+            connection.commit()
+            print("Flight updated successfully!")
+
+        else:
+            print("That criteria does not exist! Make sure you type the criteria exactly as it appears in the Flights table.")
+    
+    else:
+        print(f"No flight found with ID {flight_id}. Please check the ID and try again.")
+    
+    cursor.close()
+    connection.close()
+
+# Function to assign a pilot to a flight
+def assign_pilot_to_flight():
+    
+    # Establish connection and create cursor
+    connection = connect_to_db()
+    cursor = connection.cursor()
+
+    # Get user to input flight
+    flight_id = input("Enter the ID number of the flight you are assigning a pilot to: ")
+
+     # CHeck that flight ID exists
+    cursor.execute("SELECT 1 FROM Flights WHERE Flight_ID = ?", (flight_id,))
+    flight_exists = cursor.fetchone() # This returns none if no flight ID exists for user input
+
+    # If flight exists for that ID
+    if flight_exists:
+
+        # Get user to input Pilot info
+        pilot_id = input(f"Enter the ID number of the pilot which you are assigning to flight {flight_id}: ")
+
+        # Check an ID for this pilot exists
+        cursor.execute("SELECT 1 FROM Pilots WHERE Pilot_ID = ?", (pilot_id,))
+        pilot_exists = cursor.fetchone()
+
+        # Get the pilot role for this flight
+        role = input(f"Input Pilot {pilot_id}'s role for this flight (Captain or First Officer): ")
+
+        # If it does, assign pilot to flight
+        if pilot_exists:
+            
+            # Check if the pilot has already been assigned to flight so we don't break composite primary key constraint
+            cursor.execute("SELECT 1 FROM Flight_Pilot WHERE Flight_ID = ? AND Pilot_ID = ?", (flight_id, pilot_id))
+            assignment_exists = cursor.fetchone()
+
+            # If there is no existing assignment of pilot to flight, perfomr the assignment
+            if not assignment_exists:
+
+                cursor.execute("""INSERT INTO Flight_Pilot (Flight_ID, Pilot_ID, Role)
+                            VALUES(?, ?, ?)""",
+                            (flight_id, pilot_id, role))
+                connection.commit()
+                print(f"Pilot {pilot_id} successfully assigned to flight {flight_id}")
+
+            # If this assignment already exists, tell the user
+            else:
+                print(f"Pilot {pilot_id} is already assigned to flight {flight_id}.")
+
+        else:
+            print(f"No pilot found with ID {pilot_id}. Please check the ID and try again.")
+
+    else:
+        print(f"No flight found with ID {flight_id}. Please check the ID and try again.")
+
+    # Close cursor and connection
+    cursor.close()
+    connection.close()
+
+# Main function to display terminal and implement functions
 def main():
     # Menu is constantly printed until user exits
     while True:
@@ -183,9 +288,9 @@ def main():
         print("1) View flights by criteria")
         print("2) Add a new flight to the database")
         print("3) Remove a flight from the database")
-        print("4) INSERT OPTION")
-        print("5) INSERT OPTION")
-        print("4) INSERT OPTION")
+        print("4) Update flight information")
+        print("5) Assign a pilot to a flight")
+        print("6) View Pilot Schedule")
         print("7) Quit\n")
 
         # Get user input
@@ -199,6 +304,10 @@ def main():
             add_flight()
         elif choice == "3":
             remove_flight()
+        elif choice == "4":
+            update_flight_info()
+        elif choice == "5":
+            assign_pilot_to_flight()
         elif choice == "7":
             print("Exitted Program")
             break
