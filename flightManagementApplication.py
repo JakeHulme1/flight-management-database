@@ -347,7 +347,29 @@ def view_pilot_schedule():
             print(f"Pilot with ID number {pilot_id} has no schedule.")
     else:
         print(f"Pilot with ID number {pilot_id} does not exist! Check the ID and try again")
+
+    # Close connection and cursor
+    cursor.close()
+    connection.close()
     
+def view_destination_info():
+    
+    # Create connection and cursor object
+    connection = connect_to_db()
+    cursor = connection.cursor()
+
+    # Ask user what destination they want to see flights for
+    destination = input("Enter the IATA of the destination airport (e.g. Sydney is SYD): ")
+
+    # Grab all relevant items from table by joining Airport_IATA in Airport with Arrival_Airport_IATA in FLights
+    cursor.execute("""SELECT 
+                   Flight.Flight_Number
+                   Flight.Departure_Airport_IATA AS "Origin"
+                   Flight.Airline_Name, 
+                   Flight.Arrival
+                   Flight.Flight_Status
+                   FROM""")
+
 
 
 # Main function to display terminal and implement functions
@@ -361,8 +383,10 @@ def main():
         print("3) Remove a flight from the database")
         print("4) Update flight information")
         print("5) Assign a pilot to a flight")
-        print("6) View Pilot Schedule")
-        print("7) Quit\n")
+        print("6) View pilot schedule")
+        print("7) View destination information (shows all flights to a particular destination)")
+        print("8) Update destination information")
+        print("9) Quit\n")
 
         # Get user input
         choice = input("Enter the number of the option you wish to execute: ")
@@ -379,7 +403,9 @@ def main():
             update_flight_info()
         elif choice == "5":
             assign_pilot_to_flight()
-        elif choice == "7":
+        elif choice == "6":
+            view_pilot_schedule()
+        elif choice == "9":
             print("Exitted Program")
             break
         else:
