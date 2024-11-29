@@ -385,11 +385,14 @@ def number_of_flights_to_destination():
     cursor.execute("SELECT 1 FROM Flights WHERE Arrival_Airport_IATA = ?", (airport,))
     airport_exists = cursor.fetchone()
 
+    # If there is, return the number of flights, if not print that this flight does not exist
     if airport_exists:
-        cursor.execute("SELECT COUNT(*) FROM Flights WHERE Arrival_Airport_IATA = ?", (airport))
-        count = fetchone()
-    
-    print(f"There are {count} flights to {airport}")
+        cursor.execute("SELECT COUNT(*) FROM Flights WHERE Arrival_Airport_IATA = ?", (airport,))
+        result = cursor.fetchone()
+        count = result[0]
+        print(f"There are {count} flights to {airport}\n\n")
+    else:
+        print("No flights match this destination! Please check you used the correct airport IATA.")
 
     cursor.close()
     connection.close()
@@ -408,7 +411,8 @@ def main():
         print("5) Assign a pilot to a flight")
         print("6) View pilot schedule")
         print("7) View destination information (shows all flights to a particular destination)")
-        print("8) Quit")
+        print("8) View number of flights to a particular destination")
+        print("9) Quit")
 
         # Get user input
         choice = input("Enter the number of the option you wish to execute: ")
@@ -430,6 +434,8 @@ def main():
         elif choice =="7":
             view_destination_info()
         elif choice == "8":
+            number_of_flights_to_destination()
+        elif choice == "9":
             print("Exitted Program")
             break
         else:
