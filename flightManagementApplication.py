@@ -382,6 +382,17 @@ def number_of_flights_to_destination():
     airport = input("Enter the IATA code of the airport you want to check the number of flights to. ")
 
     # Check there is an IATA code of that in the Flights table
+    cursor.execute("SELECT 1 FROM Flights WHERE Arrival_Airport_IATA = ?", (airport,))
+    airport_exists = cursor.fetchone()
+
+    if airport_exists:
+        cursor.execute("SELECT COUNT(*) FROM Flights WHERE Arrival_Airport_IATA = ?", (airport))
+        count = fetchone()
+    
+    print(f"There are {count} flights to {airport}")
+
+    cursor.close()
+    connection.close()
 
 
 # Main function to display terminal and implement functions
