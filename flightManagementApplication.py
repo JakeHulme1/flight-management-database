@@ -37,9 +37,9 @@ def view_flights():
 
         # Check if any flights were found
         if flights:
-            # Print all the flights
-            for flight in flights:
-                print(flight)
+            # Print all the flights and format with tabulate
+            headers = ["Flight_ID", "Flight_Number", "Airline_Name", "Aircraft_ID", "Departure", "Arrival", "Flight_Status", "Departure_Airport_IATA", "Arrival_Airport_IATA"]
+            print(tabulate(flights, headers=headers, tablefmt="grid"))
 
         else:
             print("No flights found for the given criteria.")
@@ -78,8 +78,8 @@ def view_flights():
             # Print the flights 
             flights = cursor.fetchall()
             if flights:
-                for flight in flights:
-                    print(flight)
+                 headers = ["Flight_ID", "Flight_Number", "Airline_Name", "Aircraft_ID", "Departure", "Arrival", "Flight_Status", "Departure_Airport_IATA", "Arrival_Airport_IATA"]
+                 print(tabulate(flights, headers=headers, tablefmt="grid"))
             else:
                 print("No flights exist for the given criteria.")
 
@@ -280,21 +280,6 @@ def assign_pilot_to_flight():
     cursor.close()
     connection.close()
 
-    # # Use the cursor object to run SQL commands. execute() runs it as a string literal so we can directly type the SQL command
-    #     cursor.execute("SELECT * FROM Flights;")
-
-    #     # Store all the flights
-    #     flights = cursor.fetchall()
-
-    #     # Check if any flights were found
-    #     if flights:
-    #         # Print all the flights
-    #         for flight in flights:
-    #             print(flight)
-
-    #     else:
-    #         print("No flights found for the given criteria.")
-
 def view_pilot_schedule():
     
     # Establish connection and create cursor
@@ -305,7 +290,7 @@ def view_pilot_schedule():
     pilot_id = input("Enter 'ALL' to see all pilot's schedules or enter the pilot ID number for the pilot who you wish to see the schedule for: ")
 
     # If user types 'ALL' show whole schedule
-    if pilot_id == "ALL":
+    if pilot_id.upper() == "ALL":
 
         cursor.execute("""SELECT Pilot_ID, Full_Name, Flight_ID, Flight_Number, Departure, Arrival, Flight_Status,
                        Departure_Airport_IATA, Arrival_Airport_IATA
@@ -315,14 +300,11 @@ def view_pilot_schedule():
 
         # Check if there is a schedule and print is there is
         if schedule:
-            for item in schedule:
-                print(item)
+            headers = ["Pilot_ID", "Full_Name", "Flight_ID", "Flight_Number", "Departure", "Arrival", "Flight_Status", "Departure_Airport_IATA", "Arrival_Airport_IATA"]
+            print(tabulate(schedule, headers=headers, tablefmt="grid"))
         else:
             print("There is currently no flight schedule") 
         
-        # Close cursor and connection
-        cursor.close()
-        connection.close()
 
     # Check an ID for this pilot exists
     cursor.execute("SELECT 1 FROM Pilots WHERE Pilot_ID = ?", (pilot_id,))
@@ -342,8 +324,8 @@ def view_pilot_schedule():
 
         # If data has been collected it print it, if not, no data exists for that pilot
         if schedule:
-            for item in schedule:
-                print(item)
+            headers = ["Pilot_ID", "Full_Name", "Flight_ID", "Flight_Number", "Departure", "Arrival", "Flight_Status", "Departure_Airport_IATA", "Arrival_Airport_IATA"]
+            print(tabulate(schedule, headers=headers, tablefmt="grid"))
         else:
             print(f"Pilot with ID number {pilot_id} has no schedule.")
     else:
@@ -371,15 +353,17 @@ def view_destination_info():
         cursor.execute("""SELECT 
                     Flights.Flight_Number,
                     Flights.Departure_Airport_IATA AS "Origin",
+                    Airports.City AS "Origin City",
+                    Airports.Country AS "Origin Country",
                     Flights.Airline_Name, 
                     Flights.Arrival,
                     Flights.Flight_Status
-                    FROM Flights
+                    FROM Flights JOIN Airports ON Flights.Departure_Airport_IATA = Airports.Airport_IATA 
                     WHERE Flights.Arrival_Airport_IATA = ?""", (destination,))
         flights = cursor.fetchall()
 
         if flights:
-            headers = ["Flight Number", "Origin", "Airline Name", "Arrival", "Flight Status"]
+            headers = ["Flight Number", "Origin Airport", "Origin City", "Origin Country", "Airline Name", "Arrival", "Flight Status"]
             print(f"Flights going to {destination} airport:\n")
             print(tabulate(flights, headers=headers, tablefmt="grid"))
         else:
@@ -388,6 +372,16 @@ def view_destination_info():
     # Close connection and cursor
     cursor.close()
     connection.close()
+
+def number_of_flights_to_destination():
+
+    # Create connection
+    connection = connect_to_db()
+    cursor = connection.cursor()
+
+    airport = input("Enter the IATA code of the airport you want to check the number of flights to. ")
+
+    # Check there is an IATA code of that in the Flights table
 
 
 # Main function to display terminal and implement functions
@@ -403,8 +397,7 @@ def main():
         print("5) Assign a pilot to a flight")
         print("6) View pilot schedule")
         print("7) View destination information (shows all flights to a particular destination)")
-        print("8) Update destination information")
-        print("9) Quit\n")
+        print("8) Quit")
 
         # Get user input
         choice = input("Enter the number of the option you wish to execute: ")
@@ -425,7 +418,7 @@ def main():
             view_pilot_schedule()
         elif choice =="7":
             view_destination_info()
-        elif choice == "9":
+        elif choice == "8":
             print("Exitted Program")
             break
         else:
