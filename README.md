@@ -51,15 +51,54 @@ This repository contains a Python-based Flight Management System that interacts 
 | Pilot_ID | Identifier of the assigned pilot  |
 | Role     | Role of the pilot (e.g., Captain) |
 
+### Airports Table
+
+| Column                | Description                             |
+|-----------------------|-----------------------------------------|
+| Airport_IATA          | IATA code of the airport                |
+| Airport_Name          | Name of the airport                     |
+| City                  | City where the airport is located       |
+| Country               | Country where the airport is located    |
+
+### Aircrafts Table
+
+| Column                | Description                             |
+|-----------------------|-----------------------------------------|
+| Aircraft_ID           | Unique identifier for each aircraft     |
+| Aircraft_Model        | Model of the aircraft                   |
+| Airline_Name          | Name of the airline operating the aircraft|
+
 ## How to Run the Program
 
 ### Install Dependencies
 Ensure Python is installed along with the required libraries:
 ```bash
 pip install tabulate
+```
 
 ## Set Up the Database
+1. Create an SQLite database named FlightManagement.db.
+2. Use the schema provided in the Database Schema section to create the tables.
+3. Run the databaseCreation&Population.py script to populate the database with initial data.
 
-The following options can be used to create a database
+## Run the script
 
-### 1. Use databaseCreation
+Execute the Python script:
+```bash
+python flightManagementApplication.py
+```
+
+## Interact with the Menu
+
+Follow the terminal prompts to perform various operations.
+
+### Example: Parameterized Query for Security
+# Example of parameterized query to prevent SQL injection
+```bash
+cursor.execute("SELECT * FROM Flights WHERE Flight_ID = ?", (flight_id,))
+```
+
+## Key Notes
+- Ensure all date and time inputs are in ISO 8601 format (YYYY-MM-DDThh:mm).
+- The program validates user inputs to align with the database schema.
+- To extend the functionality, modify the existing menu options or add new database operations.
